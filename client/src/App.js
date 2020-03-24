@@ -2,32 +2,34 @@ import React, { Component } from 'react';
 import io from 'socket.io-client';
 import './App.css';
 
-var socket = io('172.20.10.2:5000');
+//var socket = io('localhost:5000');
+var socket = io('172.20.10.5:5000');    //Serverin ip adresini yaz
 
 
 class App extends Component {
-  
+
   constructor(props){
     super(props);
 
     //degisimlerde anlik guncellenebilmesi icin stateleri tanimladik
     this.state = {
       humidity:0,
-      temperature:0
+      temperature:0,
+      foodLevel:false
     }
   }
-    
+
   componentDidMount() {
-    
+
   }
-    
-    
+
+
   onForwardPress = (event) => {
       event.stopPropagation();
       console.log("asad");
       socket.emit('direction', 'forward'); // 2. Start rotation
     }
-    
+
     onBackwardPress = (event) => {
       event.stopPropagation();
       socket.emit('direction', 'backward'); // 2. Start rotation
@@ -36,21 +38,42 @@ class App extends Component {
       event.stopPropagation();
       socket.emit('direction', 'stop'); // 3. Stop rotation
     }
-    
+
     //dataları okuduğumuz fonksiyon
-    readData = () => {   
-      //isi sensoru socket baglantisi 
-      socket.on('HEAT_SENSOR_UPDATE', (sensor) => {
-        this.setState({humidity : sensor.humidity,
-                      temperature : sensor.temperature});
+    readData = () => {
+      //isi sensoru socket baglantisi
+      socket.on('HEAT_SENSOR_UPDATE', (heatSensor) => {
+        this.setState({humidity : heatSensor.humidity,
+                      temperature : heatSensor.temperature});
+      });
+      //Mama sensoru socket baglantisi
+      socket.on('FOOD_SENSOR_UPDATE', (foodSensor) => {
+        this.setState({foodLevel : foodSensor.isFull});
       });
     }
-  //<meta http-equiv="Content-Security-Policy" content="default-src data: gap://* file://* https://ssl.gstatic.com *; img-src 'self' * data:; style-src 'self' 'unsafe-inline' *; script-src 'self' 'unsafe-eval' 'unsafe-inline' *; connect-src 'self' * ws://* wss://*;"></meta>
 
 
   render() {
 
     this.readData();
+    const foodLevel = this.state.foodLevel;
+    let food;
+    if(foodLevel){
+      console.log("dolu");
+      food = <div class="w3-light-grey w3-round-xlarge w3-small">
+      <div class="w3-container w3-center w3-round-xlarge w3-green" style={{width:300/100*100}}>
+<div class="w3-center w3-text-white">Dolu</div>
+      </div>
+    </div>
+    }else{
+      console.log("bos");
+      food = <div class="w3-light-grey w3-round-xlarge w3-small">
+      <div class="w3-container w3-center w3-round-xlarge w3-red" style={{width:300/100*20}}>
+<div class="w3-center w3-text-white">Bos!</div>
+      </div>
+    </div>
+    }
+
       return (
        /* <div className="App">
           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
@@ -68,7 +91,7 @@ class App extends Component {
             onTouchCancel={this.onRelease}
           >
             </button>
-          <a>temp is {this.state.temperature} °C</a> 
+          <a>temp is {this.state.temperature} °C</a>
           <a>humidity is {this.state.humidity}%</a>
         </div>*/
 
@@ -84,13 +107,13 @@ class App extends Component {
 <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto'></link>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
 <style>
-html,body,h1,h2,h3,h4,h5,h6 
+html,body,h1,h2,h3,h4,h5,h6
 </style>
 
   <div class="w3-row-padding">
   <div class="w3-content w3-margin-top " style={{width:350}}>
     <div class="w3-third">
-    
+
       <div class="w3-white w3-text-grey w3-card-4">
         <div class="w3-display-container">
           <div class="w3-display-bottomleft w3-container w3-text-black">
@@ -109,11 +132,7 @@ html,body,h1,h2,h3,h4,h5,h6
             <div class="w3-container w3-center w3-round-xlarge w3-green" style={{width : 350/100* this.state.temperature}}>{this.state.temperature}°C</div>
           </div>
           <p>Mama Seviyesi</p>
-          <div class="w3-light-grey w3-round-xlarge w3-small">
-            <div class="w3-container w3-center w3-round-xlarge w3-teal" style={{width:300/100*80}}>
-              <div class="w3-center w3-text-white">80%</div>
-            </div>
-          </div>
+          {food}
           <p>Su Seviyesi</p>
           <div class="w3-light-grey w3-round-xlarge w3-small">
             <div class="w3-container w3-center w3-round-xlarge w3-teal" style={{width:300/100*75}}>75%</div>
@@ -163,7 +182,7 @@ html,body,h1,h2,h3,h4,h5,h6
   <i class="fa fa-pinterest-p w3-hover-opacity"></i>
   <i class="fa fa-twitter w3-hover-opacity"></i>
   <i class="fa fa-linkedin w3-hover-opacity"></i>
-  <p>Automation by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">PetAu</a></p>
+  <p>Automation by <a href="https://www.github.com/cakmakfurkan" target="_blank">PetAu</a></p>
 </footer>
        </body>
       );

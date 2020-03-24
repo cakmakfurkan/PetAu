@@ -27,7 +27,7 @@ var server = http.createServer(app);
 var io = socketIO(server);
 
 
-//webden gelen datayi okuyoruz
+//clientten gelen datayi okuyoruz
 
 io.on('connection', function (socket) {
   console.log("Baglanti Kuruldu");
@@ -38,7 +38,7 @@ io.on('connection', function (socket) {
         //ledOut.writeSync(1);
       } else if(direction === 'backward') {
         //ledOut.writeSync(0);
-      } 
+      }
   });
 });
 
@@ -51,12 +51,14 @@ var sensor = require("node-dht-sensor");
 //fake isi sensoru verisi
 var temperature = 50;
 var humidity = 60;
+//fake food level
+var food = false;
 
 //Sensorlerden verileri 3 saniyede bir okuyan fonksiyon
 
 const updateInterval = setInterval(() => {
 
-//3 saniyede bir sensor okunuyor SENSOR_UPDATE ile webe gonderiliyor
+//3 saniyede bir sensor okunuyor SENSOR_UPDATE ile cliente gonderiliyor
 /*sensor.read(11, 4, function(err, temperature, humidity) {
     if (!err) {
       io.sockets.emit('HEAT_SENSOR_UPDATE', {
@@ -72,6 +74,11 @@ io.sockets.emit('HEAT_SENSOR_UPDATE', {
   temperature: temperature++,
   humidity: humidity++,
 });
+
+//fake mama kabi verisi
+io.sockets.emit('FOOD_SENSOR_UPDATE', {
+    isFull:food
+})
 
 },3000);
 
