@@ -15,7 +15,8 @@ class App extends Component {
     this.state = {
       humidity:0,
       temperature:0,
-      foodLevel:false
+      foodLevel:false,
+      waterLevel:false
     }
   }
 
@@ -24,20 +25,19 @@ class App extends Component {
   }
 
 
-  onForwardPress = (event) => {
-      event.stopPropagation();
-      console.log("asad");
-      socket.emit('direction', 'forward'); // 2. Start rotation
-    }
+  onFeedClicked = (event) => {
 
-    onBackwardPress = (event) => {
-      event.stopPropagation();
-      socket.emit('direction', 'backward'); // 2. Start rotation
-    }
-  onRelease = (event) => {
-      event.stopPropagation();
-      socket.emit('direction', 'stop'); // 3. Stop rotation
-    }
+    socket.emit('PROCESS', 'FEED'); // Besle butonuna basildiginda calisir
+  }
+
+  onWaterClicked = (event) => {
+
+    socket.emit('PROCESS', 'WATER'); // Su ver butonuna basildiginda calisir
+  }
+  onHeaterClicked = (event) => {
+
+    socket.emit('PROCESS', 'HEATER'); // Isitici checkboxsuna basildiginda calisir
+  }
 
     //dataları okuduğumuz fonksiyon
     readData = () => {
@@ -50,6 +50,10 @@ class App extends Component {
       socket.on('FOOD_SENSOR_UPDATE', (foodSensor) => {
         this.setState({foodLevel : foodSensor.isFull});
       });
+      //Su sensoru socket baglantisi
+      socket.on('WATER_SENSOR_UPDATE', (waterSensor) => {
+        this.setState({waterLevel : waterSensor.isFull});
+      });
     }
 
 
@@ -57,17 +61,30 @@ class App extends Component {
 
     this.readData();
     const foodLevel = this.state.foodLevel;
+    const waterLevel = this.state.waterLevel;
     let food;
+    let water;
     if(foodLevel){
-      console.log("dolu");
       food = <div class="w3-light-grey w3-round-xlarge w3-small">
       <div class="w3-container w3-center w3-round-xlarge w3-green" style={{width:300/100*100}}>
 <div class="w3-center w3-text-white">Dolu</div>
       </div>
     </div>
     }else{
-      console.log("bos");
       food = <div class="w3-light-grey w3-round-xlarge w3-small">
+      <div class="w3-container w3-center w3-round-xlarge w3-red" style={{width:300/100*20}}>
+<div class="w3-center w3-text-white">Bos!</div>
+      </div>
+    </div>
+    }
+    if(waterLevel){
+      water = <div class="w3-light-grey w3-round-xlarge w3-small">
+      <div class="w3-container w3-center w3-round-xlarge w3-green" style={{width:300/100*100}}>
+<div class="w3-center w3-text-white">Dolu</div>
+      </div>
+    </div>
+    }else{
+      water = <div class="w3-light-grey w3-round-xlarge w3-small">
       <div class="w3-container w3-center w3-round-xlarge w3-red" style={{width:300/100*20}}>
 <div class="w3-center w3-text-white">Bos!</div>
       </div>
@@ -75,30 +92,6 @@ class App extends Component {
     }
 
       return (
-       /* <div className="App">
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
-            <button
-            className="btn fa-atom"
-            onMouseDown={this.onForwardPress}
-            onMouseUp={this.onRelease}
-            onTouchCancel={this.onRelease}
-          >
-          </button>
-          <button
-            className="btn  fa-rocket"
-            onMouseDown={this.onBackwardPress}
-            onMouseUp={this.onRelease}
-            onTouchCancel={this.onRelease}
-          >
-            </button>
-          <a>temp is {this.state.temperature} °C</a>
-          <a>humidity is {this.state.humidity}%</a>
-        </div>*/
-
-
-
-
-
 <body class="w3-light-grey">
 
 <title>W3.CSS Template</title>
@@ -134,9 +127,7 @@ html,body,h1,h2,h3,h4,h5,h6
           <p>Mama Seviyesi</p>
           {food}
           <p>Su Seviyesi</p>
-          <div class="w3-light-grey w3-round-xlarge w3-small">
-            <div class="w3-container w3-center w3-round-xlarge w3-teal" style={{width:300/100*75}}>75%</div>
-          </div>
+          {water}
           <p>Nem Seviyesi</p>
           <div class="w3-light-grey w3-round-xlarge w3-small">
             <div class="w3-container w3-center w3-round-xlarge w3-teal" style={{width: 350/100* this.state.humidity}}>{this.state.humidity}%</div>
@@ -146,16 +137,14 @@ html,body,h1,h2,h3,h4,h5,h6
           <p class="w3-large w3-text-theme"><b><i class="fa fa-globe fa-fw w3-margin-right w3-text-teal"></i>Ortam</b></p>
           <p>Isıtıcı Durumu</p>
           <label class="switch">
-  <input type="checkbox"></input>
-  <span class="slider round"></span>
-  </label>
+          <input type="checkbox" onClick={this.onHeaterClicked}></input>>
+          <span class="slider round"></span>
+          </label>
           <p>Mama Ver</p>
           <div class="w3-light-grey w3-round-xlarge">
           <button
             className="btn fa-atom"
-            onMouseDown={this.onForwardPress}
-            onMouseUp={this.onRelease}
-            onTouchCancel={this.onRelease}
+            onClick={this.onFeedClicked}
           >
           </button>
           </div>
@@ -163,9 +152,7 @@ html,body,h1,h2,h3,h4,h5,h6
           <div class="w3-light-grey w3-round-xlarge">
             <button
             className="btn fa-atom"
-            onMouseDown={this.onForwardPress}
-            onMouseUp={this.onRelease}
-            onTouchCancel={this.onRelease}
+            onClick={this.onWaterClicked}
           >
           </button>
           </div>

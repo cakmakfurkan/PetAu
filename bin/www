@@ -9,6 +9,7 @@ var app = require('../app');
 var debug = require('debug')('survivor:server');
 var http = require('http');
 var socketIO = require('socket.io');
+//const Gpio = require('onoff').Gpio;
 
 /**
  * Get port from environment and store in Express.
@@ -31,21 +32,22 @@ var io = socketIO(server);
 
 io.on('connection', function (socket) {
   console.log("Baglanti Kuruldu");
-    socket.on('direction', function (data) { // Incoming data
-      direction = data;
-      console.log(direction);
-      if (direction === 'forward') {
-        //ledOut.writeSync(1);
-      } else if(direction === 'backward') {
-        //ledOut.writeSync(0);
-      }
+  socket.on('PROCESS', (data) => {
+    if(data === 'WATER'){
+      console.log("watering");
+    }else if(data === 'FEED'){
+      console.log("feeding");
+    }else if(data === 'HEATER'){
+      console.log("heating");
+    }
   });
 });
 
-//isi sensorunu tanimliyoruz
+//Sensorleri tanimliyoruz
 
-var sensor = require("node-dht-sensor");
-
+var heatSensor = require("node-dht-sensor");
+//const foodSensor = new Gpio(4, 'in', 'both');
+//const waterSensor = new Gpio(27, 'in', 'both');
 
 
 //fake isi sensoru verisi
@@ -53,13 +55,16 @@ var temperature = 50;
 var humidity = 60;
 //fake food level
 var food = false;
+//fake water level
+var water = true;
 
-//Sensorlerden verileri 3 saniyede bir okuyan fonksiyon
+//Sensorlerden verileri 10 saniyede bir okuyan fonksiyon çok sik tutulursa clientte donmalar yasanabiliyor !!!
 
 const updateInterval = setInterval(() => {
 
-//3 saniyede bir sensor okunuyor SENSOR_UPDATE ile cliente gonderiliyor
-/*sensor.read(11, 4, function(err, temperature, humidity) {
+//3 saniyede bir sensor okunuyor 
+//HEAT_SENSOR_UPDATE ile cliente gonderiliyor
+/*heatSensor.read(11, 4, function(err, temperature, humidity) {
     if (!err) {
       io.sockets.emit('HEAT_SENSOR_UPDATE', {
         temperature: this.temperature,
@@ -67,6 +72,20 @@ const updateInterval = setInterval(() => {
       });
       };
 });*/
+
+//FOOD_SENSOR_UPDATE ile cliente gonderiliyor
+/*foodSensor.watch((err, value) => {
+  io.sockets.emit('FOOD_SENSOR_UPDATE', {
+  isFull:value
+});}
+);*/
+
+//WATER_SENSOR_UPDATE ile cliente gonderiliyor
+/*waterSensor.watch((err, value) => {
+  io.sockets.emit('WATER_SENSOR_UPDATE', {
+  isFull:value
+});}
+);*/
 
 
 //fake isi sensoru verisi
@@ -78,9 +97,14 @@ io.sockets.emit('HEAT_SENSOR_UPDATE', {
 //fake mama kabi verisi
 io.sockets.emit('FOOD_SENSOR_UPDATE', {
     isFull:food
-})
+});
 
-},3000);
+//fake su kabi verisi
+io.sockets.emit('WATER_SENSOR_UPDATE', {
+  isFull:water
+});
+
+},10000);
 
 
 
